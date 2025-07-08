@@ -59,10 +59,7 @@ export function Header() {
               >
                 Layanan Pelanggan
               </Link>
-              <Link
-                href="/track-order"
-                className="text-gray-600 hover:text-black"
-              >
+              <Link href="/orders" className="text-gray-600 hover:text-black">
                 Lacak Pesanan
               </Link>
             </div>

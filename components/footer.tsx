@@ -37,7 +37,7 @@ const footerLinks = {
       { name: 'Daftar', href: '/auth/sign-up' },
       { name: 'Riwayat Pesanan', href: '/orders' },
       { name: 'Wishlist', href: '/wishlist' },
-      { name: 'Lacak Pesanan', href: '/track-order' },
+      { name: 'Lacak Pesanan', href: '/orders' },
     ],
   },
   connect: {
@@ -52,10 +52,14 @@ const footerLinks = {
 };
 
 const socialLinks = [
-  { icon: Facebook, href: 'https://facebook.com/yelis', label: 'Facebook' },
-  { icon: Instagram, href: 'https://instagram.com/yelis', label: 'Instagram' },
-  { icon: Twitter, href: 'https://twitter.com/yelis', label: 'Twitter' },
-  { icon: Youtube, href: 'https://youtube.com/yelis', label: 'YouTube' },
+  { icon: Facebook, href: 'https://facebook.com/yellsaind', label: 'Facebook' },
+  {
+    icon: Instagram,
+    href: 'https://instagram.com/yelsaindzml15',
+    label: 'Instagram',
+  },
+  { icon: Twitter, href: 'https://twitter.com/yellsaind', label: 'Twitter' },
+  { icon: Youtube, href: 'https://youtube.com/yellsaind', label: 'YouTube' },
 ];
 
 export function Footer() {

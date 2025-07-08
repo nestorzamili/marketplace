@@ -6,6 +6,7 @@ import { OrderProvider } from '@/lib/order-context';
 import { AuthProvider } from '@/lib/auth-context';
 import { WishlistProvider } from '@/lib/wishlist-context';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import NextTopLoader from 'nextjs-toploader';
 import { Toaster } from 'sonner';
 
 const geistSans = Geist({
@@ -38,8 +39,9 @@ export default function RootLayout({
             <WishlistProvider>
               <CartProvider>
                 <OrderProvider>
+                  <NextTopLoader showSpinner={false} />
                   {children}
-                  <Toaster position="top-right" richColors closeButton />
+                  <Toaster position="bottom-right" richColors />
                 </OrderProvider>
               </CartProvider>
             </WishlistProvider>

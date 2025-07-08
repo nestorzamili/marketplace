@@ -1,6 +1,12 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  ReactNode,
+  useCallback,
+} from 'react';
 
 export interface OrderItem {
   id: string;
@@ -186,65 +192,91 @@ const OrderContext = createContext<OrderContextType | undefined>(undefined);
 export function OrderProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(orderReducer, initialState);
 
-  const createOrder = (orderData: Omit<Order, 'id'>) => {
-    const order: Order = {
-      ...orderData,
-      id: Math.random().toString(36).substring(7),
-    };
+  const getStoredOrders = useCallback((): Order[] => {
+    if (typeof window === 'undefined') return [];
 
-    // Save to localStorage
-    const existingOrders = getStoredOrders();
-    const updatedOrders = [order, ...existingOrders];
-    localStorage.setItem('user_orders', JSON.stringify(updatedOrders));
+    try {
+      const stored = localStorage.getItem('user_orders');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }, []);
 
-    dispatch({ type: 'CREATE_ORDER', payload: order });
-  };
+  const createOrder = useCallback(
+    (orderData: Omit<Order, 'id'>) => {
+      const order: Order = {
+        ...orderData,
+        id: Math.random().toString(36).substring(7),
+      };
 
-  const updateOrderStatus = (orderId: string, status: Order['status']) => {
-    // Update localStorage
-    const existingOrders = getStoredOrders();
-    const updatedOrders = existingOrders.map((order) =>
-      order.orderId === orderId ? { ...order, status } : order,
-    );
-    localStorage.setItem('user_orders', JSON.stringify(updatedOrders));
+      // Save to localStorage
+      const existingOrders = getStoredOrders();
+      const updatedOrders = [order, ...existingOrders];
+      localStorage.setItem('user_orders', JSON.stringify(updatedOrders));
 
-    dispatch({ type: 'UPDATE_ORDER_STATUS', payload: { orderId, status } });
-  };
+      dispatch({ type: 'CREATE_ORDER', payload: order });
+    },
+    [getStoredOrders],
+  );
 
-  const addPaymentProof = (orderId: string, paymentProof: string) => {
-    // Update localStorage
-    const existingOrders = getStoredOrders();
-    const updatedOrders = existingOrders.map((order) =>
-      order.orderId === orderId
-        ? { ...order, paymentProof, status: 'paid' as const }
-        : order,
-    );
-    localStorage.setItem('user_orders', JSON.stringify(updatedOrders));
+  const updateOrderStatus = useCallback(
+    (orderId: string, status: Order['status']) => {
+      // Update localStorage
+      const existingOrders = getStoredOrders();
+      const updatedOrders = existingOrders.map((order) =>
+        order.orderId === orderId ? { ...order, status } : order,
+      );
+      localStorage.setItem('user_orders', JSON.stringify(updatedOrders));
 
-    dispatch({ type: 'ADD_PAYMENT_PROOF', payload: { orderId, paymentProof } });
-  };
+      dispatch({ type: 'UPDATE_ORDER_STATUS', payload: { orderId, status } });
+    },
+    [getStoredOrders],
+  );
 
-  const addTrackingNumber = (orderId: string, trackingNumber: string) => {
-    // Update localStorage
-    const existingOrders = getStoredOrders();
-    const updatedOrders = existingOrders.map((order) =>
-      order.orderId === orderId
-        ? { ...order, trackingNumber, status: 'shipped' as const }
-        : order,
-    );
-    localStorage.setItem('user_orders', JSON.stringify(updatedOrders));
+  const addPaymentProof = useCallback(
+    (orderId: string, paymentProof: string) => {
+      // Update localStorage
+      const existingOrders = getStoredOrders();
+      const updatedOrders = existingOrders.map((order) =>
+        order.orderId === orderId
+          ? { ...order, paymentProof, status: 'paid' as const }
+          : order,
+      );
+      localStorage.setItem('user_orders', JSON.stringify(updatedOrders));
 
-    dispatch({
-      type: 'ADD_TRACKING_NUMBER',
-      payload: { orderId, trackingNumber },
-    });
-  };
+      dispatch({
+        type: 'ADD_PAYMENT_PROOF',
+        payload: { orderId, paymentProof },
+      });
+    },
+    [getStoredOrders],
+  );
 
-  const setCurrentOrder = (order: Order | null) => {
+  const addTrackingNumber = useCallback(
+    (orderId: string, trackingNumber: string) => {
+      // Update localStorage
+      const existingOrders = getStoredOrders();
+      const updatedOrders = existingOrders.map((order) =>
+        order.orderId === orderId
+          ? { ...order, trackingNumber, status: 'shipped' as const }
+          : order,
+      );
+      localStorage.setItem('user_orders', JSON.stringify(updatedOrders));
+
+      dispatch({
+        type: 'ADD_TRACKING_NUMBER',
+        payload: { orderId, trackingNumber },
+      });
+    },
+    [getStoredOrders],
+  );
+
+  const setCurrentOrder = useCallback((order: Order | null) => {
     dispatch({ type: 'SET_CURRENT_ORDER', payload: order });
-  };
+  }, []);
 
-  const loadOrders = () => {
+  const loadOrders = useCallback(() => {
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
@@ -255,26 +287,21 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  };
+  }, [getStoredOrders]);
 
-  const getStoredOrders = (): Order[] => {
-    if (typeof window === 'undefined') return [];
+  const getOrderById = useCallback(
+    (orderId: string): Order | undefined => {
+      return state.orders.find((order) => order.orderId === orderId);
+    },
+    [state.orders],
+  );
 
-    try {
-      const stored = localStorage.getItem('user_orders');
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  };
-
-  const getOrderById = (orderId: string): Order | undefined => {
-    return state.orders.find((order) => order.orderId === orderId);
-  };
-
-  const getOrdersByStatus = (status: Order['status']): Order[] => {
-    return state.orders.filter((order) => order.status === status);
-  };
+  const getOrdersByStatus = useCallback(
+    (status: Order['status']): Order[] => {
+      return state.orders.filter((order) => order.status === status);
+    },
+    [state.orders],
+  );
 
   return (
     <OrderContext.Provider
