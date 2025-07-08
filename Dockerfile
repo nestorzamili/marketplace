@@ -29,9 +29,6 @@ RUN pnpm build
 FROM node:18-alpine AS runner
 WORKDIR /app
 
-# Install curl untuk health check
-RUN apk add --no-cache curl
-
 # Set environment variables
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
@@ -60,10 +57,6 @@ EXPOSE 3123
 # Set environment variables untuk runtime
 ENV PORT 3123
 ENV HOSTNAME "0.0.0.0"
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3123/api/health || exit 1
 
 # Start aplikasi
 CMD ["node", "server.js"]
